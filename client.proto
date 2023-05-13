@@ -1,0 +1,43 @@
+syntax = "proto3";
+package client;
+// Définition du message movie
+message Client {
+string id = 1;
+bool pro = 2;
+string nom_prenom= 3;
+string num_tel= 4;
+string n_cin= 5;
+string email=6;
+string adresse=7;
+string gouvernement=8;
+string code_postal=9;
+string note=10;
+// Ajouter d'autres champs de données pour les films au besoin
+}
+
+// Définition des messages de requête et de réponse pour les méthodes d
+message GetClientRequest {
+string client_id = 1;
+}
+message GetClientResponse {
+Client client = 1;
+}
+message SearchClientRequest {
+string query = 1;
+}
+message SearchClientsResponse {
+repeated Client clients = 1;
+}
+
+message CreateClientResponse {
+     string message = 1;
+    }
+    message CreateClientRequest {
+        string message = 1;
+        }
+// Définition du service de films
+service ClientService {
+rpc GetClient(GetClientRequest) returns (GetClientResponse);
+rpc SearchClients(SearchClientRequest) returns (SearchClientsResponse);
+rpc CreateClient(CreateClientRequest) returns (CreateClientResponse) {}
+}

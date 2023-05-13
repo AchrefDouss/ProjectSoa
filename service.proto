@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package service;
+
+
+message Service {
+  string id = 1;
+  string description = 2;
+  string designation = 3;
+  float prix_Achat=4;
+  float prix_Vente=5;
+  int32  tva=6;
+  int32  quantity=7;
+  int32  remise=8;
+  string type=9; 
+
+}
+
+message GetServiceRequest {
+  string service_id = 1;
+}
+
+message GetServiceResponse {
+  Service service = 1;
+}
+
+message SearchServicesRequest {
+  string query = 1;
+}
+
+message SearchServicesResponse {
+  repeated Service services = 1;
+}
+
+service ServiceService {
+  rpc GetService(GetServiceRequest) returns (GetServiceResponse);
+  rpc SearchServices(SearchServicesRequest) returns (SearchServicesResponse);
+
+}
