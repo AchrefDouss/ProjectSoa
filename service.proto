@@ -4,15 +4,14 @@ package service;
 
 
 message Service {
-  string id = 1;
-  string description = 2;
-  string designation = 3;
-  float prix_Achat=4;
-  float prix_Vente=5;
-  int32  tva=6;
-  int32  quantity=7;
-  int32  remise=8;
-  string type=9; 
+  string description = 1;
+  string designation = 2;
+  float prix_Achat=3;
+  float prix_Vente=4;
+  int32  tva=5;
+  int32  quantity=6;
+  int32  remise=7;
+  string type=8; 
 
 }
 
@@ -32,8 +31,41 @@ message SearchServicesResponse {
   repeated Service services = 1;
 }
 
+
+message CreateServiceResponse {
+  string message = 1;
+ }
+ message CreateServiceRequest {
+     string message = 1;
+     }
+     
+message UpdateServiceRequest {
+  string description = 1;
+  string designation = 2;
+  float prix_Achat=3;
+  float prix_Vente=4;
+  int32  tva=5;
+  int32  quantity=6;
+  int32  remise=7;
+  string type=8; 
+}
+
+message UpdateServiceResponse {
+ Service service = 1;
+}
+
+message DeleteServiceRequest {
+ string service_id = 1;
+}
+
+message DeleteServiceResponse {
+ bool success = 1;
+}
+
 service ServiceService {
   rpc GetService(GetServiceRequest) returns (GetServiceResponse);
   rpc SearchServices(SearchServicesRequest) returns (SearchServicesResponse);
-
+  rpc CreateService(CreateServiceRequest) returns (CreateServiceResponse) {}
+  rpc UpdateService(UpdateServiceRequest) returns (UpdateServiceResponse);
+  rpc DeleteService(DeleteServiceRequest) returns (DeleteServiceResponse);
 }

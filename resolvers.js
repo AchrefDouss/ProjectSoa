@@ -1,6 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
-
+const { MongoClient, ObjectId } = require("mongodb");
 const clientProtoPath = "client.proto";
 const serviceProtoPath = "service.proto";
 const clientProtoDefinition = protoLoader.loadSync(clientProtoPath, {
@@ -19,6 +19,16 @@ const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
 });
 const clientProto = grpc.loadPackageDefinition(clientProtoDefinition).client;
 const serviceProto = grpc.loadPackageDefinition(serviceProtoDefinition).service;
+
+const url = "mongodb+srv://ecommerce:ecommerce@cluster0.5hfgv.mongodb.net/";
+const dbName = "ecommerce";
+
+async function connect() {
+  const client = new MongoClient(url);
+  await client.connect();
+  return client.db(dbName);
+}
+
 const clientClients = new clientProto.ClientService(
   "localhost:50051",
   grpc.credentials.createInsecure()
@@ -31,47 +41,61 @@ const clientServices = new serviceProto.ServiceService(
 const resolvers = {
   Query: {
     client: (_, { id }) => {
-      return new Promise((resolve, reject) => {
-        clientClients.getClient({ clientId: id }, (err, response) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(response.client);
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("clients").findOne(
+          { _id: ObjectId(id) },
+          (err, client) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(client);
+            }
           }
-        });
+        );
       });
     },
     clients: () => {
-      return new Promise((resolve, reject) => {
-        clientClients.searchClients({}, (err, response) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(response.clients);
-          }
-        });
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("clients")
+          .find()
+          .toArray((err, clients) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(clients);
+            }
+          });
       });
     },
     service: (_, { id }) => {
-      return new Promise((resolve, reject) => {
-        clientServices.getService({ serviceId: id }, (err, response) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(response.service);
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("services").findOne(
+          { _id: ObjectId(id) },
+          (err, service) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(service);
+            }
           }
-        });
+        );
       });
     },
     services: () => {
-      return new Promise((resolve, reject) => {
-        clientServices.searchServices({}, (err, response) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(response.services);
-          }
-        });
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("services")
+          .find()
+          .toArray((err, services) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(services);
+            }
+          });
       });
     },
   },
@@ -79,7 +103,6 @@ const resolvers = {
     createClient: (
       _,
       {
-        id,
         pro,
         nom_prenom,
         num_tel,
@@ -91,25 +114,80 @@ const resolvers = {
         note,
       }
     ) => {
-      return new Promise((resolve, reject) => {
-        clientClients.createClient(
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("clients").insertOne(
           {
-            movie_id: id,
-            pro: pro,
-            nom_prenom: nom_prenom,
-            num_tel: num_tel,
-            n_cin: n_cin,
-            email: email,
-            adresse: adresse,
-            gouvernement: gouvernement,
-            code_postal: code_postal,
-            note: note,
+            pro,
+            nom_prenom,
+            num_tel,
+            n_cin,
+            email,
+            adresse,
+            gouvernement,
+            code_postal,
+            note,
           },
-          (err, response) => {
+          (err, result) => {
             if (err) {
               reject(err);
             } else {
-              resolve(response.client);
+              resolve({
+                pro,
+                nom_prenom,
+                num_tel,
+                n_cin,
+                email,
+                adresse,
+                gouvernement,
+                code_postal,
+                note,
+              });
+            }
+          }
+        );
+      });
+    },
+    createService: (
+      _,
+      {
+        description,
+        designation,
+        prix_Achat,
+        prix_Vente,
+        tva,
+        quantity,
+        remise,
+        type,
+      }
+    ) => {
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("services").insertOne(
+          {
+            description,
+            designation,
+            prix_Achat,
+            prix_Vente,
+            tva,
+            quantity,
+            remise,
+            type,
+          },
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({
+                description,
+                designation,
+                prix_Achat,
+                prix_Vente,
+                tva,
+                quantity,
+                remise,
+                type,
+              });
             }
           }
         );

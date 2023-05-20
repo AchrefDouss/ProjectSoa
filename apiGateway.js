@@ -8,7 +8,7 @@ const protoLoader = require("@grpc/proto-loader");
 
 const clientProtoPath = "client.proto";
 const serviceProtoPath = "service.proto";
-
+const { MongoClient, ObjectId } = require("mongodb");
 const resolvers = require("./resolvers");
 const typeDefs = require("./schema");
 
@@ -40,25 +40,30 @@ const clientServices = new serviceProto.ServiceService(
   grpc.credentials.createInsecure()
 );
 
+// MongoDB connection
+const url = "mongodb+srv://ecommerce:ecommerce@cluster0.5hfgv.mongodb.net/";
+const dbName = "ecommerce";
+
+async function connect() {
+  const client = new MongoClient(url);
+  await client.connect();
+  return client.db(dbName);
+}
+
 const server = new ApolloServer({ typeDefs, resolvers });
 
 server.start().then(() => {
   app.use(cors(), bodyParser.json(), expressMiddleware(server));
 });
 
-app.get("/clients", (req, res) => {
-  clientClients.searchClients({}, (err, response) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json(response.clients);
-    }
-  });
+app.get("/clients", async (req, res) => {
+  const db = await connect();
+  const clients = await db.collection("clients").find().toArray();
+  res.json(clients);
 });
 
-app.post("/client", (req, res) => {
+app.post("/client", async (req, res) => {
   const {
-    id,
     pro,
     nom_prenom,
     num_tel,
@@ -69,59 +74,141 @@ app.post("/client", (req, res) => {
     code_postal,
     note,
   } = req.body;
-  clientClients.createClient(
-    {
-      client_id: id,
-      pro: pro,
-      nom_prenom: nom_prenom,
-      num_tel: num_tel,
-      n_cin: n_cin,
-      email: email,
-      adresse: adresse,
-      gouvernement: gouvernement,
-      code_postal: code_postal,
-      note: note,
-    },
-    (err, response) => {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.json(response.client);
-      }
-    }
-  );
+  const db = await connect();
+  const clientt = {
+    pro,
+    nom_prenom,
+    num_tel,
+    n_cin,
+    email,
+    adresse,
+    gouvernement,
+    code_postal,
+    note,
+  };
+  await db.collection("clients").insertOne(clientt);
+  res.json(clientt);
 });
 
-app.get("/client/:id", (req, res) => {
+app.get("/client/:id", async (req, res) => {
   const id = req.params.id;
-  clientClients.getClient({ clientId: id }, (err, response) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json(response.client);
-    }
-  });
+  const db = await connect();
+  const client = await db
+    .collection("clients")
+    .findOne({ _id: new ObjectId(id) });
+  res.json(client);
 });
-
-app.get("/services", (req, res) => {
-  clientServices.searchServices({}, (err, response) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json(response.services);
-    }
-  });
-});
-
-app.get("/service/:id", (req, res) => {
+app.put("/client/:id", async (req, res) => {
   const id = req.params.id;
-  clientServices.getService({ serviceId: id }, (err, response) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json(response.service);
-    }
-  });
+  const {
+    pro,
+    nom_prenom,
+    num_tel,
+    n_cin,
+    email,
+    adresse,
+    gouvernement,
+    code_postal,
+    note,
+  } = req.body;
+  const db = await connect();
+  const client = {
+    pro,
+    nom_prenom,
+    num_tel,
+    n_cin,
+    email,
+    adresse,
+    gouvernement,
+    code_postal,
+    note,
+  };
+  const result = await db
+    .collection("clients")
+    .updateOne({ _id: new ObjectId(id) }, { $set: client });
+  res.json(client);
+});
+app.delete("/client/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = await connect();
+  await db.collection("clients").deleteOne({ _id: new ObjectId(id) });
+  res.json({ message: "Client deleted successfully" });
+});
+
+app.get("/services", async (req, res) => {
+  const db = await connect();
+  const services = await db.collection("services").find().toArray();
+  res.json(services);
+});
+
+app.get("/service/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = await connect();
+  const service = await db
+    .collection("services")
+    .findOne({ _id: new ObjectId(id) });
+  res.json(service);
+});
+
+app.post("/service", async (req, res) => {
+  const {
+    description,
+    designation,
+    prix_Achat,
+    prix_Vente,
+    tva,
+    quantity,
+    remise,
+    type,
+  } = req.body;
+  const db = await connect();
+  const service = {
+    description,
+    designation,
+    prix_Achat,
+    prix_Vente,
+    tva,
+    quantity,
+    remise,
+    type,
+  };
+  await db.collection("services").insertOne(service);
+  res.json(service);
+});
+app.delete("/service/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = await connect();
+  await db.collection("services").deleteOne({ _id: new ObjectId(id) });
+  res.json({ message: "Service deleted successfully" });
+});
+
+app.put("/service/:id", async (req, res) => {
+  const id = req.params.id;
+  const {
+    description,
+    designation,
+    prix_Achat,
+    prix_Vente,
+    tva,
+    quantity,
+    remise,
+    type,
+  } = req.body;
+  const db = await connect();
+  const service = {
+    description,
+    designation,
+    prix_Achat,
+    prix_Vente,
+    tva,
+    quantity,
+    remise,
+    type,
+  };
+  const result = await db
+    .collection("services")
+    .updateOne({ _id: new ObjectId(id) }, { $set: service });
+  res.json(service);
 });
 
 const port = 3000;

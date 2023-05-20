@@ -1,6 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
-
+const { MongoClient, ObjectID } = require("mongodb");
 const serviceProtoPath = "service.proto";
 const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
   keepCase: true,
@@ -10,85 +10,114 @@ const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
   oneofs: true,
 });
 const serviceProto = grpc.loadPackageDefinition(serviceProtoDefinition).service;
+// MongoDB connection
+const url = "mongodb+srv://ecommerce:ecommerce@cluster0.5hfgv.mongodb.net/";
+const dbName = "ecommerce";
 
+async function connect() {
+  const client = new MongoClient(url);
+  await client.connect();
+  return client.db(dbName);
+}
 const serviceService = {
-  getService: (call, callback) => {
-    const service = [
-      {
-        id: call.request.service_id,
-        description: "This is an example of Service",
-        designation: "Service for test ",
-        prix_Achat: 3200,
-        prix_Vente: 4000,
-        tva: 19,
-        quantity: 20,
-        remise: 1,
-        type: "Service",
-      },
-      {
-        id: call.request.service_id,
-        description: "Developpement Web",
-        designation: "Service DEV_WEB",
-        prix_Achat: 5000,
-        prix_Vente: 5000,
-        tva: 19,
-        quantity: 1,
-        remise: 1,
-        type: "Service",
-      },
-      {
-        id: call.request.service_id,
-        description: "Dollar",
-        designation: "Service Marketing",
-        prix_Achat: 3200,
-        prix_Vente: 5000,
-        tva: 19,
-        quantity: 200,
-        remise: 1,
-        type: "Article",
-      },
-    ];
-    callback(null, { service });
+  getService: async (call, callback) => {
+    const db = await connect();
+    const id = call.request.client_id;
+    const service = await db
+      .collection("services")
+      .findOne({ _id: ObjectID(id) });
+    callback(null, { service: service });
   },
-  searchServices: (call, callback) => {
-    const { query } = call.request;
+  searchServices: async (call, callback) => {
+    const db = await connect();
+    const services = await db.collection("services").find().toArray();
+    callback(null, { services: services });
+  },
+  createService: (
+    _,
+    {
+      description,
+      designation,
+      prix_Achat,
+      prix_Vente,
+      tva,
+      quantity,
+      remise,
+      type,
+    }
+  ) => {
+    return new Promise(async (resolve, reject) => {
+      const db = await connect();
+      db.collection("services").insertOne(
+        {
+          description,
+          designation,
+          prix_Achat,
+          prix_Vente,
+          tva,
+          quantity,
+          remise,
+          type,
+        },
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({
+              description,
+              designation,
+              prix_Achat,
+              prix_Vente,
+              tva,
+              quantity,
+              remise,
+              type,
+            });
+          }
+        }
+      );
+    });
+  },
 
-    const services = [
-      {
-        id: "1",
-        description: "This is an example of Service",
-        designation: "Service for test ",
-        prix_Achat: 3200,
-        prix_Vente: 4000,
-        tva: 19,
-        quantity: 20,
-        remise: 1,
-        type: "Service",
-      },
-      {
-        id: "2",
-        description: "Developpement Web",
-        designation: "Service DEV_WEB",
-        prix_Achat: 5000,
-        prix_Vente: 5000,
-        tva: 19,
-        quantity: 1,
-        remise: 1,
-        type: "Service",
-      },
-      {
-        id: "3",
-        description: "Dollar",
-        designation: "Service Marketing",
-        prix_Achat: 3200,
-        prix_Vente: 5000,
-        tva: 19,
-        quantity: 200,
-        remise: 1,
-        type: "Article",
-      },
-    ];
-    callback(null, { services });
+  updateService: async (call, callback) => {
+    const db = await connect();
+    const {
+      description,
+      designation,
+      prix_Achat,
+      prix_Vente,
+      tva,
+      quantity,
+      remise,
+      type,
+    } = call.request;
+    const updatedService = {
+      description,
+      designation,
+      prix_Achat,
+      prix_Vente,
+      tva,
+      quantity,
+      remise,
+      type,
+    };
+    await db
+      .collection("services")
+      .updateOne({ _id: ObjectID(service_id) }, { $set: updatedService });
+    const service = await db
+      .collection("services")
+      .findOne({ _id: ObjectID(service_id) });
+    callback(null, { service: service });
+  },
+
+  deleteService: async (call, callback) => {
+    const db = await connect();
+    const service_id = call.request.service_id;
+    const result = await db
+      .collection("services")
+      .deleteOne({ _id: ObjectID(service_id) });
+    const success = result.deletedCount > 0;
+    callback(null, { success });
   },
 };
 

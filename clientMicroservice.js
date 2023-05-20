@@ -1,6 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
-
+const { MongoClient, ObjectID } = require("mongodb");
 const clientProtoPath = "client.proto";
 const clientProtoDefinition = protoLoader.loadSync(clientProtoPath, {
   keepCase: true,
@@ -10,80 +10,99 @@ const clientProtoDefinition = protoLoader.loadSync(clientProtoPath, {
   oneofs: true,
 });
 const clientProto = grpc.loadPackageDefinition(clientProtoDefinition).client;
+// MongoDB connection
+const url = "mongodb+srv://ecommerce:ecommerce@cluster0.5hfgv.mongodb.net/";
+const dbName = "ecommerce";
 
+async function connect() {
+  const client = new MongoClient(url);
+  await client.connect();
+  return client.db(dbName);
+}
 const clientService = {
-  getClient: (call, callback) => {
-    const client = {
-      id: call.request.client_id,
-      pro: true,
-      nom_prenom: "achref douss",
-      num_tel: "93738819",
-      n_cin: "14223233",
-      email: "achrefdouss@gmail.com",
-      adresse: "Moknine",
-      gouvernement: "Monastir",
-      code_postal: "5050",
-      note: "This is pro client",
-    };
-    callback(null, { client });
+  getClient: async (call, callback) => {
+    const db = await connect();
+    const id = call.request.client_id;
+    const clientt = await db
+      .collection("clients")
+      .findOne({ _id: ObjectID(id) });
+    callback(null, { client: clientt });
   },
-  searchClients: (call, callback) => {
-    const { query } = call.request;
-
-    const clients = [
-      {
-        id: "1",
-        pro: true,
-        nom_prenom: "achref douss",
-        num_tel: "93738819",
-        n_cin: "14223233",
-        email: "achrefdouss@gmail.com",
-        adresse: "Moknine",
-        gouvernement: "Monastir",
-        code_postal: "5050",
-        note: "This is pro client",
-      },
-      {
-        id: "2",
-        pro: false,
-        nom_prenom: "John Doe",
-        num_tel: "2424444",
-        n_cin: "2523232",
-        email: "johnDoe@gmail.com",
-        adresse: "Paris",
-        gouvernement: "Paris",
-        code_postal: "412-PA",
-        note: "This is Normal client",
-      },
-      {
-        id: "3",
-        pro: true,
-        nom_prenom: "Test Client",
-        num_tel: "50656985",
-        n_cin: "14003005",
-        email: "ClientTest@gmail.com",
-        adresse: "Rue yaser Arafet,Sahloul",
-        gouvernement: "Sahloul",
-        code_postal: "4001",
-        note: "This is a Pro client",
-      },
-    ];
-    callback(null, { clients });
+  searchClients: async (call, callback) => {
+    const db = await connect();
+    const clients = await db.collection("clients").find().toArray();
+    callback(null, { clients: clients });
   },
-  createClient: (call, callback) => {
-    const { query } = call.request;
-    const client = {
-      id: call.request.client_id,
-      nom_prenom: call.request.nom_prenom,
-      num_tel: call.request.num_tel,
-      n_cin: call.request.n_cin,
-      email: call.request.email,
-      adresse: call.request.adresse,
-      gouvernement: call.request.gouvernement,
-      code_postal: call.request.code_postal,
-      note: call.request.note,
+  createClient: async (call, callback) => {
+    const db = await connect();
+    const {
+      client_id,
+      pro,
+      nom_prenom,
+      num_tel,
+      n_cin,
+      email,
+      adresse,
+      gouvernement,
+      code_postal,
+      note,
+    } = call.request;
+    const clientt = {
+      _id: ObjectID(client_id),
+      pro,
+      nom_prenom,
+      num_tel,
+      n_cin,
+      email,
+      adresse,
+      gouvernement,
+      code_postal,
+      note,
     };
-    callback(null, { client });
+    await db.collection("clients").insertOne(clientt);
+    callback(null, { clientt });
+  },
+  updateClient: async (call, callback) => {
+    const db = await connect();
+    const {
+      client_id,
+      pro,
+      nom_prenom,
+      num_tel,
+      n_cin,
+      email,
+      adresse,
+      gouvernement,
+      code_postal,
+      note,
+    } = call.request;
+    const updatedClient = {
+      pro,
+      nom_prenom,
+      num_tel,
+      n_cin,
+      email,
+      adresse,
+      gouvernement,
+      code_postal,
+      note,
+    };
+    await db
+      .collection("clients")
+      .updateOne({ _id: ObjectID(client_id) }, { $set: updatedClient });
+    const clientt = await db
+      .collection("clients")
+      .findOne({ _id: ObjectID(client_id) });
+    callback(null, { client: clientt });
+  },
+  deleteClient: async (call, callback) => {
+    const db = await connect();
+    const client_id = call.request.client_id;
+    const result = await db
+      .collection("clients")
+      .deleteOne({ _id: ObjectID(client_id) });
+    const success = result.deletedCount > 0;
+    callback(null, { success });
   },
 };
 

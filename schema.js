@@ -2,7 +2,6 @@ const { gql } = require("@apollo/server");
 
 const typeDefs = `#graphql
   type Client {
-    id: String!
     pro: Boolean!
     nom_prenom: String!
     num_tel: String
@@ -15,7 +14,6 @@ const typeDefs = `#graphql
   }
 
   type Service {
-    id: String!
     description: String!
     designation:String!
     prix_Achat:Float!
@@ -33,7 +31,7 @@ const typeDefs = `#graphql
     services: [Service]
   }
   type Mutation {
-    createClient(id: String!,  pro: Boolean!
+    createClient(pro: Boolean!
       nom_prenom: String!
       num_tel: String!
       n_cin: String!
@@ -42,6 +40,15 @@ const typeDefs = `#graphql
       gouvernement: String!
       code_postal: String!
       notes: String): Client
+      
+      createService(description: String!
+    designation:String!
+    prix_Achat:Float!
+    prix_Vente:Float!
+    tva:Int!
+    quantity:Int!
+    remise:Int!
+    type:String!): Service
   }
 `;
 

@@ -2,17 +2,16 @@ syntax = "proto3";
 package client;
 // Définition du message movie
 message Client {
-string id = 1;
-bool pro = 2;
-string nom_prenom= 3;
-string num_tel= 4;
-string n_cin= 5;
-string email=6;
-string adresse=7;
-string gouvernement=8;
-string code_postal=9;
-string note=10;
-// Ajouter d'autres champs de données pour les films au besoin
+bool pro = 1;
+string nom_prenom= 2;
+string num_tel= 3;
+string n_cin= 4;
+string email=5;
+string adresse=6;
+string gouvernement=7;
+string code_postal=8;
+string note=9;
+// Ajouter d'autres 1champs de données pour les films au besoin
 }
 
 // Définition des messages de requête et de réponse pour les méthodes d
@@ -35,9 +34,35 @@ message CreateClientResponse {
     message CreateClientRequest {
         string message = 1;
         }
+        
+message UpdateClientRequest {
+    bool pro = 1;
+    string nom_prenom= 2;
+    string num_tel= 3;
+    string n_cin= 4;
+    string email=5;
+    string adresse=6;
+    string gouvernement=7;
+    string code_postal=8;
+    string note=9;
+  }
+  
+  message UpdateClientResponse {
+    Client client = 1;
+  }
+  
+  message DeleteClientRequest {
+    string client_id = 1;
+  }
+  
+  message DeleteClientResponse {
+    bool success = 1;
+  }
 // Définition du service de films
 service ClientService {
 rpc GetClient(GetClientRequest) returns (GetClientResponse);
 rpc SearchClients(SearchClientRequest) returns (SearchClientsResponse);
 rpc CreateClient(CreateClientRequest) returns (CreateClientResponse) {}
+rpc UpdateClient(UpdateClientRequest) returns (UpdateClientResponse);
+rpc DeleteClient(DeleteClientRequest) returns (DeleteClientResponse);
 }
