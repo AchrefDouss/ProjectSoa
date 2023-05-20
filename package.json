@@ -2,7 +2,7 @@
   "name": "streaming_microservices",
   "version": "1.0.0",
   "description": "",
-  "main": "apiGatway.js.js",
+  "main": "apiGateway.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
