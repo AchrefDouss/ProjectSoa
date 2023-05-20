@@ -49,6 +49,17 @@ const typeDefs = `#graphql
     quantity:Int!
     remise:Int!
     type:String!): Service
+    updateClient(id:ID! pro: Boolean!
+      nom_prenom: String!
+      num_tel: String!
+      n_cin: String!
+      email: String!
+      adresse: String!
+      gouvernement: String!
+      code_postal: String!
+      notes: String): Client
+      deleteClient(id: ID!): Boolean
+
   }
 `;
 

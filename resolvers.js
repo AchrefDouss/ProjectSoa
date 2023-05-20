@@ -193,6 +193,47 @@ const resolvers = {
         );
       });
     },
+    updateClient: async (
+      {
+        id,
+        pro,
+        nom_prenom,
+        num_tel,
+        n_cin,
+        email,
+        adresse,
+        gouvernement,
+        code_postal,
+        note,
+      },
+      context
+    ) => {
+      const db = await connect();
+      const client = {
+        pro,
+        nom_prenom,
+        num_tel,
+        n_cin,
+        email,
+        adresse,
+        gouvernement,
+        code_postal,
+        note,
+      };
+
+      const result = await db
+        .collection("clients")
+        .updateOne({ _id: ObjectId(id) }, { $set: client });
+
+      return client;
+    },
+    deleteClient: async (parent, { id }, context) => {
+      const db = await connect();
+      const result = await db
+        .collection("clients")
+        .deleteOne({ _id: new ObjectId(id) });
+      return result.deletedCount > 0; // Return true if deletion was successful
+    },
   },
 };
 
