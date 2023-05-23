@@ -31,3 +31,23 @@ Ce code est un exemple d'une API Gateway qui se connecte à deux services diffé
 - Il définit le port sur lequel l'API Gateway doit écouter les demandes entrantes et démarre le serveur en utilisant app.listen().
 
 L'API Gateway expose donc une API REST pour les clients qui peut être consommée pour obtenir des informations sur les clients et les services. La Gateway utilise des clients gRPC pour communiquer avec les services sous-jacents et expose une API GraphQL pour la consommation des clients.
+# Utilisation des URI
+GET /clients : Cette URI permet de récupérer tous les clients. Lorsque cette requête est effectuée, le serveur se connecte à la base de données, récupère tous les documents de la collection "clients" et les renvoie en tant que réponse JSON.
+
+POST /client : Cette URI permet d'ajouter un nouveau client. Lorsque cette requête est effectuée, les données du client sont extraites du corps de la requête (pro, nom_prenom, num_tel, n_cin, email, adresse, gouvernement, code_postal, note). Ensuite, le serveur se connecte à la base de données, insère le nouveau client dans la collection "clients" et renvoie les données du client ajouté en tant que réponse JSON.
+
+GET /client/:id : Cette URI permet de récupérer un client spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du client est extrait des paramètres de la requête. Le serveur se connecte à la base de données, recherche le client correspondant à cet ID dans la collection "clients" et renvoie le client trouvé en tant que réponse JSON.
+
+PUT /client/:id : Cette URI permet de mettre à jour un client spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du client est extrait des paramètres de la requête, et les nouvelles données du client (pro, nom_prenom, num_tel, n_cin, email, adresse, gouvernement, code_postal, note) sont extraites du corps de la requête. Le serveur se connecte à la base de données, met à jour le client correspondant à cet ID dans la collection "clients" avec les nouvelles données et renvoie les nouvelles données du client en tant que réponse JSON.
+
+DELETE /client/:id : Cette URI permet de supprimer un client spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du client est extrait des paramètres de la requête. Le serveur se connecte à la base de données, supprime le client correspondant à cet ID de la collection "clients" et renvoie un message JSON indiquant que le client a été supprimé avec succès.
+
+GET /services : Cette URI permet de récupérer tous les services. Lorsque cette requête est effectuée, le serveur se connecte à la base de données, récupère tous les documents de la collection "services" et les renvoie en tant que réponse JSON.
+
+GET /service/:id : Cette URI permet de récupérer un service spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du service est extrait des paramètres de la requête. Le serveur se connecte à la base de données, recherche le service correspondant à cet ID dans la collection "services" et renvoie le service trouvé en tant que réponse JSON.
+
+POST /service : Cette URI permet d'ajouter un nouveau service. Lorsque cette requête est effectuée, les données du service sont extraites du corps de la requête (description, designation, prix_Achat, prix_Vente, tva, quantity, remise, type). Ensuite, le serveur se connecte à la base de données, insère le nouveau service dans la collection "services" et renvoie les données du service ajouté en tant que réponse JSON.
+
+DELETE /service/:id : Cette URI permet de supprimer un service spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du service est extrait des paramètres de la requête. Le serveur se connecte à la base de données, supprime le service correspondant à cet ID de la collection "services" et renvoie un message JSON indiquant que le service a été supprimé avec succès.
+
+PUT /service/:id : Cette URI permet de mettre à jour un service spécifique en fonction de son ID. Lorsque cette requête est effectuée, l'ID du service est extrait des paramètres de la requête, et les nouvelles données du service (description, designation, prix_Achat, prix_Vente, tva, quantity, remise, type) sont extraites du corps de la requête. Le serveur se connecte à la base de données, met à jour le service correspondant à cet ID dans la collection "services" avec les nouvelles données et renvoie les nouvelles données du service en tant que réponse JSON.
