@@ -17,6 +17,22 @@ La méthode "getClient" renvoie un objet "client" avec des informations pré-dé
 Enfin, le serveur est créé et lié à un port spécifique. Une fois le serveur lancé, la console affiche un message confirmant que le serveur est en cours d'exécution sur le port spécifié.
 
 Pour utiliser ce service client, il faut créer un client gRPC qui invoque les méthodes "GetClient", "SearchClients" et "CreateClient" et envoie les paramètres nécessaires.
+# ServiceMicroServices 
+Ce code met en œuvre un microservice de service en utilisant gRPC pour la communication et MongoDB comme base de données. Voici une description de son utilisation :
+
+Tout d'abord, les dépendances nécessaires sont importées, telles que "@grpc/grpc-js" pour gRPC, "@grpc/proto-loader" pour charger la définition du protocole, et "mongodb" pour la gestion de la base de données MongoDB.
+
+La définition du protocole gRPC est chargée à partir du fichier "service.proto" à l'aide de "protoLoader". Cette définition est utilisée pour générer les services gRPC correspondants.
+
+La connexion à la base de données MongoDB est établie en utilisant les informations de connexion fournies (url et dbName).
+
+La fonction connect est définie comme une fonction asynchrone qui crée une nouvelle instance de MongoClient, se connecte à la base de données et retourne l'objet db (base de données) pour les opérations ultérieures.
+
+Un objet serviceService est défini, qui contient les méthodes gRPC pour la manipulation des services. Les méthodes telles que getService, searchServices, createService, updateService et deleteService sont définies pour effectuer des opérations spécifiques sur la collection "services" de la base de données.
+
+Un serveur gRPC est créé à l'aide de la classe grpc.Server(). Les services définis dans serviceService sont ajoutés au serveur en utilisant la méthode addService, en spécifiant la définition du service et l'objet contenant les méthodes.
+
+Ce code permet de créer un microservice gRPC pour la gestion des services en utilisant MongoDB comme base de données. Il fournit des opérations pour récupérer, créer, mettre à jour et supprimer des services à partir de la base de données MongoDB en utilisant le protocole de communication gRPC.
 
 # ApiGateway
 
