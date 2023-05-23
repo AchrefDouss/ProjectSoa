@@ -59,6 +59,15 @@ const typeDefs = `#graphql
       code_postal: String!
       notes: String): Client
       deleteClient(id: ID!): Boolean
+      updateService(id:ID! description: String!
+    designation:String!
+    prix_Achat:Float!
+    prix_Vente:Float!
+    tva:Int!
+    quantity:Int!
+    remise:Int!
+    type:String!): Service
+      deleteService(id: ID!): Boolean
 
   }
 `;

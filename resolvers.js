@@ -234,6 +234,45 @@ const resolvers = {
         .deleteOne({ _id: new ObjectId(id) });
       return result.deletedCount > 0; // Return true if deletion was successful
     },
+    deleteService: async (parent, { id }, context) => {
+      const db = await connect();
+      const result = await db
+        .collection("clients")
+        .deleteOne({ _id: ObjectId(id) });
+      return result.deletedCount > 0; // Return true if deletion was successful
+    },
+    updateService: async (
+      {
+        id,
+        description,
+        designation,
+        prix_Achat,
+        prix_Vente,
+        tva,
+        quantity,
+        remise,
+        type,
+      },
+      context
+    ) => {
+      const db = await connect();
+      const service = {
+        description,
+        designation,
+        prix_Achat,
+        prix_Vente,
+        tva,
+        quantity,
+        remise,
+        type,
+      };
+
+      const result = await db
+        .collection("services")
+        .updateOne({ _id: ObjectId(id) }, { $set: service });
+
+      return service;
+    },
   },
 };
 
