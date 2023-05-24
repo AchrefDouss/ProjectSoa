@@ -8,6 +8,7 @@ const protoLoader = require("@grpc/proto-loader");
 
 const clientProtoPath = "client.proto";
 const serviceProtoPath = "service.proto";
+const factureProtoPath = "facture.proto";
 const { MongoClient, ObjectId } = require("mongodb");
 const resolvers = require("./resolvers");
 const typeDefs = require("./schema");
@@ -22,6 +23,14 @@ const clientProtoDefinition = protoLoader.loadSync(clientProtoPath, {
   defaults: true,
   oneofs: true,
 });
+const factureProtoDefinition = protoLoader.loadSync(factureProtoPath, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+
 const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
   keepCase: true,
   longs: String,
@@ -31,12 +40,17 @@ const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
 });
 const clientProto = grpc.loadPackageDefinition(clientProtoDefinition).client;
 const serviceProto = grpc.loadPackageDefinition(serviceProtoDefinition).service;
+const factureProto = grpc.loadPackageDefinition(factureProtoDefinition).facture;
 const clientClients = new clientProto.ClientService(
   "localhost:50051",
   grpc.credentials.createInsecure()
 );
 const clientServices = new serviceProto.ServiceService(
   "localhost:50052",
+  grpc.credentials.createInsecure()
+);
+const clientFactures = new factureProto.FactureService(
+  "localhost:50053",
   grpc.credentials.createInsecure()
 );
 
@@ -209,6 +223,55 @@ app.put("/service/:id", async (req, res) => {
     .collection("services")
     .updateOne({ _id: new ObjectId(id) }, { $set: service });
   res.json(service);
+});
+//Facture Routes
+app.get("/factures", async (req, res) => {
+  const db = await connect();
+  const factures = await db.collection("factures").find().toArray();
+  res.json(factures);
+});
+
+app.post("/facture", async (req, res) => {
+  const { client, ref, service, quantity } = req.body;
+  const db = await connect();
+  const facture = {
+    client,
+    ref,
+    service,
+    quantity,
+  };
+  await db.collection("factures").insertOne(facture);
+  res.json(facture);
+});
+
+app.get("/facture/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = await connect();
+  const facture = await db
+    .collection("factures")
+    .findOne({ _id: new ObjectId(id) });
+  res.json(facture);
+});
+app.put("/facture/:id", async (req, res) => {
+  const id = req.params.id;
+  const { client, ref, service, quantity } = req.body;
+  const db = await connect();
+  const facture = {
+    client,
+    ref,
+    service,
+    quantity,
+  };
+  const result = await db
+    .collection("factures")
+    .updateOne({ _id: new ObjectId(id) }, { $set: facture });
+  res.json(facture);
+});
+app.delete("/facture/:id", async (req, res) => {
+  const id = req.params.id;
+  const db = await connect();
+  await db.collection("factures").deleteOne({ _id: new ObjectId(id) });
+  res.json({ message: "Facture deleted successfully" });
 });
 
 const port = 3000;

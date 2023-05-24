@@ -1,0 +1,60 @@
+syntax = "proto3";
+package facture;
+// Définition du message movie
+message Facture {
+string client=1;
+ string ref=2;
+ repeated string service=3;
+int32 quantity=4;
+
+// Ajouter d'autres 1champs de données pour les films au besoin
+}
+
+// Définition des messages de requête et de réponse pour les méthodes d
+message GetFactureRequest {
+string facture_id = 1;
+}
+message GetFactureResponse {
+Facture facture = 1;
+}
+message SearchFactureRequest {
+string query = 1;
+}
+message SearchFacturesResponse {
+repeated Facture factures = 1;
+}
+
+message CreateFactureResponse {
+     string message = 1;
+    }
+    message CreateFactureRequest {
+        string message = 1;
+        }
+        
+message UpdateFactureRequest {
+    string client=1;
+    string Ref=2;
+    repeated string service=3;
+    int32 quantity=4;
+    
+  }
+  
+  message UpdateFactureResponse {
+    Facture facture = 1;
+  }
+  
+  message DeleteFactureRequest {
+    string facture_id = 1;
+  }
+  
+  message DeleteFactureResponse {
+    bool success = 1;
+  }
+// Définition du service de films
+service FactureService {
+rpc GetFacture(GetFactureRequest) returns (GetFactureResponse);
+rpc SearchFactures(SearchFactureRequest) returns (SearchFacturesResponse);
+rpc CreateFacture(CreateFactureRequest) returns (CreateFactureResponse) {}
+rpc UpdateFacture(UpdateFactureRequest) returns (UpdateFactureResponse);
+rpc DeleteFacture(DeleteFactureRequest) returns (DeleteFactureResponse);
+}

@@ -3,7 +3,15 @@ const protoLoader = require("@grpc/proto-loader");
 const { MongoClient, ObjectId } = require("mongodb");
 const clientProtoPath = "client.proto";
 const serviceProtoPath = "service.proto";
+const factureProtoPath = "facture.proto";
 const clientProtoDefinition = protoLoader.loadSync(clientProtoPath, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+const factureProtoDefinition = protoLoader.loadSync(factureProtoPath, {
   keepCase: true,
   longs: String,
   enums: String,
@@ -18,6 +26,7 @@ const serviceProtoDefinition = protoLoader.loadSync(serviceProtoPath, {
   oneofs: true,
 });
 const clientProto = grpc.loadPackageDefinition(clientProtoDefinition).client;
+const factureProto = grpc.loadPackageDefinition(factureProtoDefinition).facture;
 const serviceProto = grpc.loadPackageDefinition(serviceProtoDefinition).service;
 
 const url = "mongodb+srv://ecommerce:ecommerce@cluster0.5hfgv.mongodb.net/";
@@ -31,6 +40,10 @@ async function connect() {
 
 const clientClients = new clientProto.ClientService(
   "localhost:50051",
+  grpc.credentials.createInsecure()
+);
+const clientFactures = new factureProto.FactureService(
+  "localhost:50053",
   grpc.credentials.createInsecure()
 );
 const clientServices = new serviceProto.ServiceService(
@@ -94,6 +107,36 @@ const resolvers = {
               reject(err);
             } else {
               resolve(services);
+            }
+          });
+      });
+    },
+
+    facture: (_, { id }) => {
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("factures").findOne(
+          { _id: ObjectId(id) },
+          (err, facture) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(facture);
+            }
+          }
+        );
+      });
+    },
+    factures: () => {
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("factures")
+          .find()
+          .toArray((err, factures) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(factures);
             }
           });
       });
@@ -237,7 +280,7 @@ const resolvers = {
     deleteService: async (parent, { id }, context) => {
       const db = await connect();
       const result = await db
-        .collection("clients")
+        .collection("services")
         .deleteOne({ _id: ObjectId(id) });
       return result.deletedCount > 0; // Return true if deletion was successful
     },
@@ -272,6 +315,56 @@ const resolvers = {
         .updateOne({ _id: ObjectId(id) }, { $set: service });
 
       return service;
+    },
+
+    createFacture: (_, { client, ref, service, quantity }) => {
+      return new Promise(async (resolve, reject) => {
+        const db = await connect();
+        db.collection("factures").insertOne(
+          {
+            client,
+            ref,
+            service,
+            quantity,
+          },
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({
+                client,
+                ref,
+                service,
+                quantity,
+              });
+            }
+          }
+        );
+      });
+    },
+
+    updateFacture: async ({ id, client, ref, service, quantity }, context) => {
+      const db = await connect();
+      const facture = {
+        client,
+        ref,
+        service,
+        quantity,
+      };
+
+      const result = await db
+        .collection("factures")
+        .updateOne({ _id: ObjectId(id) }, { $set: facture });
+
+      return facture;
+    },
+
+    deleteFacture: async (parent, { id }, context) => {
+      const db = await connect();
+      const result = await db
+        .collection("factures")
+        .deleteOne({ _id: ObjectId(id) });
+      return result.deletedCount > 0; // Return true if deletion was successful
     },
   },
 };
